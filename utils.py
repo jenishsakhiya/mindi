@@ -200,20 +200,24 @@ def create_teams_distribute_cards():
     """
     The function creates teams based on inputs from User and 
     also distribute cards based on number of decks selected by User
-    Retuns: Team objects, with players attached to it 
+    Retuns: Team objects with players attached to it, player order, total mindis 
     """
     num_of_deck = int(input("enter number of decks :"))
+    
+    # each deck has 4 mindis
+    total_mindis = num_of_deck * 4
+    
     deck = create_deck(
         shuffle=True,
         num_of_deck=num_of_deck
         )
     num_of_players = int(input("enter number of players :"))
     if len(deck)%num_of_players==0:
-        div_cart = int(len(deck) / num_of_players)
+        hand_size = int(len(deck) / num_of_players)
         players = [ {"name":"", "hand":[]} for _ in range(num_of_players)]
         card_picker = take_card(deck)
 
-        for i in range(div_cart):
+        for i in range(hand_size):
             for player in players:
                 player['hand'].append(
                     next(card_picker)
@@ -249,7 +253,7 @@ def create_teams_distribute_cards():
             "players" : team_b_players
         }
 
-        return team_a, team_b, player_list
+        return team_a, team_b, player_list, total_mindis
 
 def determine_card(card_code):
     color_code = card_code[0]
@@ -260,3 +264,17 @@ def determine_card(card_code):
         "value" : value
     }
     return card
+
+
+def check_win(team, mindis_to_win):
+    if len(team['mindi']) >= mindis_to_win:
+        return team['name']
+    else:
+        return None
+
+
+def check_mindicort_possiblity(team_a, team_b):
+    for team in [team_a, team_b]:
+        if not team['mindi']:
+            return True
+    return False
