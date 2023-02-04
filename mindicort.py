@@ -161,14 +161,13 @@ while True:
     if winner in team_a['players']:
         team_a['hands'] += 1
         team_a['mindi'].extend(mindis_in_hand)
-        team_won = check_win(team_a, mindis_to_win)
+        
     elif winner in team_b['players']:
         team_b['hands'] += 1
         team_b['mindi'].extend(mindis_in_hand)
-        team_won = check_win(team_b, mindis_to_win)
     else:
         print("winner team not found!!")
-    
+    team_won = check_win(team_a, team_b, mindis_to_win)
     clear_screen()
     print_table(
         card_list=table_cards,
@@ -179,6 +178,11 @@ while True:
     time.sleep(3)
     # we update the start position for the next round
     start_position = index_winner
+
+    if team_won=="Draw":
+        print("########################## Game Draw!! ######################################")
+        break
+
 
     if team_won:
         mindicort_chance = check_mindicort_possiblity(team_a, team_b)
@@ -196,3 +200,4 @@ while True:
             clear_screen()
             print(f"\n\n\n\t\t\t\t\t\t{team_won} Won!!\n\n\n")
             break
+    

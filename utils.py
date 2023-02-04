@@ -266,9 +266,18 @@ def determine_card(card_code):
     return card
 
 
-def check_win(team, mindis_to_win):
-    if len(team['mindi']) >= mindis_to_win:
-        return team['name']
+def check_win(team_a, team_b, mindis_to_win):
+    if len(team_a['mindi']) >= mindis_to_win:
+        return team_a['name']
+    elif len(team_b['mindi']) >= mindis_to_win:
+        return team_b['name']
+    elif len(team_b['mindi']) == mindis_to_win - 1 and len(team_a['mindi']) == mindis_to_win:
+        if team_a['hands'] > team_b['hands']:
+            return team_a['name']
+        elif team_a['hands'] < team_b['hands']:
+            return team_b['name']
+        else:
+            return "Draw"
     else:
         return None
 
