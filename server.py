@@ -2,6 +2,8 @@ import configparser
 import socket
 import select 
 
+from connection_utils import receive_message, send_message
+
 config = configparser.ConfigParser()
 config.read('config.ini')
 
@@ -34,31 +36,50 @@ clients = {}
 
 print(f'Listening for connections on {IP}:{PORT}...')
 
-# Handles message receiving
-def receive_message(client_socket):
+# Game room setup!!
+total_players = input("[#] Enter number of players: ")
+num_of_decks = input("[#] Enter number of decks: ")
+total_players = int(total_players)
+num_of_decks = int(num_of_decks)
+print(f"[#] waiting for {total_players} players to join...")
 
-    try:
+usernames = []
+while True:
+    read_sockets, _, exception_sockets = select.select(sockets_list, [], sockets_list)
+    for notified_socket in read_sockets:
+        print("We have a new notification!!")
+        # If notified socket is a server socket - new connection, accept it
+        if notified_socket == server_socket:
+            client_socket, client_address = server_socket.accept()
 
-        # Receive our "header" containing message length, it's size is defined and constant
-        message_header = client_socket.recv(HEADER_LENGTH)
+            # Client should send his name right away, receive it
+            user = receive_message(client_socket)
+            if user is False:
+                continue
+            # if username already exists we force user to choose another
+            if user['data'] in usernames:
+                _msg = "NOT ACCEPTED"
+                send_message(client_socket, _msg)
+                print("Not accepted sent to client")
+                continue
+            else:
+                _msg = "ACCEPTED"
+                usernames.append(user['data'])
+                send_message(client_socket, _msg)
+                print("Accepted sent to client")
 
-        # If we received no data, client gracefully closed a connection, for example using socket.close() or socket.shutdown(socket.SHUT_RDWR)
-        if not len(message_header):
-            return False
+            sockets_list.append(client_socket)
 
-        # Convert header to int value
-        message_length = int(message_header.decode('utf-8').strip())
+            # Also save username and username header
+            clients[client_socket] = user
+            print('[#] Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data']))
+    
+    # if all the players joined
+    if len(clients.keys()) >= total_players:
+        print("[#] All the players have joined the game")
+        break
+    
 
-        # Return an object of message header and message data
-        return {'header': message_header, 'data': client_socket.recv(message_length)}
-
-    except:
-
-        # If we are here, client closed connection violently, for example by pressing ctrl+c on his script
-        # or just lost his connection
-        # socket.close() also invokes socket.shutdown(socket.SHUT_RDWR) what sends information about closing the socket (shutdown read/write)
-        # and that's also a cause when we receive an empty message
-        return False
 
 while True:
 
@@ -98,7 +119,7 @@ while True:
             # Also save username and username header
             clients[client_socket] = user
 
-            print('Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data'].decode('utf-8')))
+            print('Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data']))
 
         # Else existing socket is sending a message
         else:
@@ -108,7 +129,7 @@ while True:
 
             # If False, client disconnected, cleanup
             if message is False:
-                print('Closed connection from: {}'.format(clients[notified_socket]['data'].decode('utf-8')))
+                print('Closed connection from: {}'.format(clients[notified_socket]['data']))
 
                 # Remove from list for socket.socket()
                 sockets_list.remove(notified_socket)
@@ -121,7 +142,7 @@ while True:
             # Get user by notified socket, so we will know who sent the message
             user = clients[notified_socket]
 
-            print(f'Received message from {user["data"].decode("utf-8")}: {message["data"].decode("utf-8")}')
+            print(f'Received message from {user["data"].decode("utf-8")}: {message["data"]}')
 
             # Iterate over connected clients and broadcast message
             for client_socket in clients:

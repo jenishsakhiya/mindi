@@ -3,6 +3,8 @@ import select
 import errno
 import configparser
 import sys
+from connection_utils import receive_message, send_message
+
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -11,7 +13,6 @@ PORT = int(config['NETWORK']['PORT'])
 
 HEADER_LENGTH = 10
 
-my_username = input("Username: ")
 
 # Create a socket
 # socket.AF_INET - address family, IPv4, some otehr possible are AF_INET6, AF_BLUETOOTH, AF_UNIX
@@ -22,16 +23,26 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((IP, PORT))
 
 # Set connection to non-blocking state, so .recv() call won;t block, just return some exception we'll handle
-client_socket.setblocking(False)
+# client_socket.setblocking(False)
 
 # Prepare username and header and send them
 # We need to encode username to bytes, then count number of bytes and prepare header of fixed size, that we encode to bytes as well
-username = my_username.encode('utf-8')
-username_header = f"{len(username):<{HEADER_LENGTH}}".encode('utf-8')
-client_socket.send(username_header + username)
+
+# Choosing unique username for the game
+while True:
+    my_username = input("Username: ")
+    send_message(client_socket, my_username)
+    response = receive_message(client_socket)
+    if response.get('data')=="ACCEPTED":
+        print("[#] Your username is accepted!")
+        break
+    else:
+        print("[#] Username already taken, choose another..")
+
+
+
 
 while True:
-
     # Wait for user to input a message
     message = input(f'{my_username} > ')
 
