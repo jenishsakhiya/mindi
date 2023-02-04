@@ -180,6 +180,8 @@ while True:
     start_position = index_winner
 
     if team_won=="Draw":
+        clear_screen
+        print(f"\n\n\n\n\n\n")
         print("########################## Game Draw!! ######################################")
         break
 
@@ -200,4 +202,17 @@ while True:
             clear_screen()
             print(f"\n\n\n\t\t\t\t\t\t{team_won} Won!!\n\n\n")
             break
+        else:
+            if min(len(team_a['mindi']), len(team_a['mindi']))>0:
+                # the losing team managed to collect mindi/s and avoided mindiKot!!
+                if len(team_a['mindis']) < len(team_b['mindis']):
+                    print("Team B won!!, Team A avoided MindiKot!!")
+                else:
+                    print("Team A won!!, Team B avoided MindiKot!!")
+                pass
+            if max(len(team_a['mindi']), len(team_a['mindi']))==total_mindis:
+                if len(team_a['mindis']) < len(team_b['mindis']):
+                    print("Team B won!!, Team A got MindiKot!!")
+                else:
+                    print("Team A won!!, Team B got MindiKot!!")
     
